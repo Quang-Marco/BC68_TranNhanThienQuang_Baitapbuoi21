@@ -1,155 +1,154 @@
-let arrSinhVien = [];
+let arrNhanVien = [];
 
 // Combo 3 trong 1
 function renderSaveReset() {
-  renderArrSinhVien();
+  renderArrNhanVien();
   saveLocalStorage();
   resetForm();
 }
 
-// Lấy dữ liệu sinh viên từ form
+// Lấy dữ liệu nhân viên từ form
 function getValueForm() {
-  let arrField = document.querySelectorAll("#formQLSV input, #formQLSV select");
-  let sinhVien = new SinhVien();
+  let arrField = document.querySelectorAll(
+    ".input-group input, .input-group select"
+  );
+  let nhanVien = new NhanVien();
   let isValid = true;
 
   for (let field of arrField) {
     let { value, id } = field;
-    sinhVien[id] = value;
+    nhanVien[id] = value;
     // Gọi tới thẻ cha đang chứa input
     let errorField = field.parentElement.querySelector("span");
     let check = checkEmptyValue(value, errorField);
     // Toán nhị phân
     isValid &= check;
 
-    if (check && id == "txtTenSV") {
+    if (check && id == "name") {
       isValid &= checkMinMaxValue(value, errorField, 4, 30);
     }
-    if (check && id == "txtEmail") {
+    if (check && id == "email") {
       isValid &= checkEmailValue(value, errorField);
       // checkPhoneNumberValue(value, errorField);
     }
-    if (check && id == "txtPass") {
+    if (check && id == "password") {
       isValid &= checkPassword(value, errorField);
     }
   }
   if (isValid) {
-    return sinhVien;
+    return nhanVien;
   }
 }
 
 // Reset Form
 function resetForm() {
-  document.getElementById("formQLSV").reset();
-  document.getElementById("txtMaSV").readOnly = false;
+  document.getElementById("formQLNV").reset();
+  document.getElementById("tknv").readOnly = false;
 }
 
 // Thêm sịnh viên vào mảng
-document.getElementById("formQLSV").onsubmit = function (e) {
-  e.preventDefault();
-  let sinhVien = getValueForm();
-  if (!sinhVien) {
+document.getElementById("btnThemNV").onclick = function () {
+  let nhanVien = getValueForm();
+  if (!nhanVien) {
     return;
   }
-
-  // Thêm sinh viên vào mảng
-  arrSinhVien.push(sinhVien);
+  // Thêm nhân viên vào mảng
+  arrNhanVien.push(nhanVien);
   renderSaveReset();
 };
 
-// Hiển thị dữ liệu sinh viên lên giao diện
-function renderArrSinhVien(arr = arrSinhVien) {
+// Hiển thị dữ liệu nhân viên lên giao diện
+function renderArrNhanVien(arr = arrNhanVien) {
   let content = "";
-  for (let sinhVien of arrSinhVien) {
-    let newArrSinhVien = new SinhVien();
-    Object.assign(newArrSinhVien, sinhVien);
-    let { txtMaSV, txtTenSV, txtEmail, txtNgaySinh, khSV } = newArrSinhVien;
+  for (let nhanVien of arrNhanVien) {
+    let newArrNhanVien = new NhanVien();
+    Object.assign(newArrNhanVien, nhanVien);
+    let { tknv, name, email, datepicker, chucvu } = newArrNhanVien;
 
     content += `
     <tr>
-      <td>${txtMaSV}</td>
-      <td>${txtTenSV}</td>
-      <td>${txtEmail}</td>
-      <td>${txtNgaySinh}</td>
-      <td>${khSV}</td>
-      <td>${newArrSinhVien.tinhDiemTrungBinh()}</td>
+      <td>${tknv}</td>
+      <td>${name}</td>
+      <td>${email}</td>
+      <td>${datepicker}</td>
+      <td>${chucvu}</td>
+      <td>${newArrNhanVien.tinhTongLuong()}</td>
+      <td>${newArrNhanVien.xepLoaiNhanVien()}</td>
       <td>
-        <button class="btn btn-danger" onclick="deleteSinhVien('${txtMaSV}')">Xóa</button>
-        <button class="btn btn-warning" onclick="getInfoSinhVien('${txtMaSV}')">Sửa</button>
+        <button class="btn btn-danger" onclick="deleteNhanVien('${tknv}')">Xóa</button>
+        <button class="btn btn-warning" onclick="getInfoNhanVien('${tknv}')">Sửa</button>
       </td>
     </tr>
     `;
   }
   // DOM tới tbody và hiển thị dữ liệu
-  document.getElementById("tbodySinhVien").innerHTML = content;
+  document.getElementById("tableDanhSach").innerHTML = content;
 }
 
 getLocalStorage();
 
 // Lưu trữ dữ liệu xuống local storage
-function saveLocalStorage(key = "arrSinhVien", value = arrSinhVien) {
+function saveLocalStorage(key = "arrNhanVien", value = arrNhanVien) {
   let stringJson = JSON.stringify(value);
   localStorage.setItem(key, stringJson);
 }
 
 // Lấy dữ liệu từ local storage
-function getLocalStorage(key = "arrSinhVien") {
+function getLocalStorage(key = "arrNhanVien") {
   let arrLocal = localStorage.getItem(key);
-  // arrSinhVien = arrLocal ? JSON.parse(arrLocal) : [];
+  // arrNhanVien = arrLocal ? JSON.parse(arrLocal) : [];
   if (arrLocal) {
-    arrSinhVien = JSON.parse(arrLocal);
-    renderArrSinhVien();
+    arrNhanVien = JSON.parse(arrLocal);
+    renderArrNhanVien();
   }
 }
 
-// Chức năng xóa một sinh viên khỏi mảng
-function deleteSinhVien(mssv) {
-  let index = arrSinhVien.findIndex((item, index) => item.txtMaSV == mssv);
+// Chức năng xóa một nhân viên khỏi mảng
+function deleteNhanVien(mssv) {
+  let index = arrNhanVien.findIndex((item, index) => item.tknv == mssv);
   if (index != -1) {
-    arrSinhVien.splice(index, 1);
-    renderArrSinhVien();
+    arrNhanVien.splice(index, 1);
+    renderArrNhanVien();
     saveLocalStorage();
   }
 }
 
-// Chức năng lấy thông tin sinh viên
-function getInfoSinhVien(mssv) {
+// Chức năng lấy thông tin nhân viên
+function getInfoNhanVien(mssv) {
   // Đưa dữ liệu SV lên giao diện
-  let sinhVien = arrSinhVien.find((item, index) => item.txtMaSV == mssv);
-  if (sinhVien) {
+  let nhanVien = arrNhanVien.find((item, index) => item.tknv == mssv);
+  if (nhanVien) {
     let arrField = document.querySelectorAll(
-      "#formQLSV input, #formQLSV select"
+      "#formQLNV input, #formQLNV select"
     );
     for (let field of arrField) {
-      field.value = sinhVien[field.id];
+      field.value = nhanVien[field.id];
     }
     // Chặn người dùng chỉnh sửa input mã SV
-    document.getElementById("txtMaSV").readOnly = true;
+    document.getElementById("tknv").readOnly = true;
   }
 }
 
-// Chức năng cập nhật thông tin sinh viên
-function updateSinhVien() {
-  let sinhVien = getValueForm();
-  let index = arrSinhVien.findIndex((item) => item.txtMaSV == sinhVien.txtMaSV);
+// Chức năng cập nhật thông tin Nhan viên
+function updateNhanVien() {
+  let nhanVien = getValueForm();
+  let index = arrNhanVien.findIndex((item) => item.tknv == nhanVien.tknv);
   if (index != -1) {
-    arrSinhVien[index] = sinhVien;
+    arrNhanVien[index] = nhanVien;
     renderSaveReset();
   }
 }
 
-document.querySelector(".btn-info").onclick = updateSinhVien;
+document.getElementById("btnCapNhat").onclick = updateNhanVien;
 
 // Chức năng tìm kiếm
-function searchSinhVien(e) {
+function searchNhanVien(e) {
   let newKeyWord = removeVietnameseTones(e.target.value.toLowerCase().trim());
-  let arrSinhVienFilter = arrSinhVien.filter((item) => {
-    let newTenSinhVien = removeVietnameseTones(
-      item.txtTenSV.toLowerCase().trim()
-    );
-    return newTenSinhVien.includes(newKeyWord);
+  let arrNhanVienFilter = arrNhanVien.filter((item) => {
+    let newTenNhanVien = removeVietnameseTones(item.name.toLowerCase().trim());
+    return newTenNhanVien.includes(newKeyWord);
   });
-  renderArrSinhVien(arrSinhVienFilter);
+  renderArrNhanVien(arrNhanVienFilter);
 }
 
-document.getElementById("txtSearch").oninput = searchSinhVien;
+document.getElementById("btnTimNV").oninput = searchNhanVien;
