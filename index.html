@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Quản lý nhân viên</title>
 
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="img/icon-10.png" type="image/x-icon" />
+
     <!-- Font Awesome -->
     <link
       rel="stylesheet"
@@ -31,7 +34,7 @@
   <body>
     <div class="wrapper">
       <!-- Sidebar Holder -->
-      <nav id="sidebar">
+      <nav id="sidebar" class="active">
         <div class="sidebar-header">
           <h3>Bootstrap Sidebar</h3>
           <strong>BS</strong>
@@ -151,9 +154,10 @@
                   <div class="input-group">
                     <input
                       type="text"
+                      name="searchXepLoai"
                       class="form-control"
                       placeholder="Loại nhân viên"
-                      id="searchName"
+                      id="searchXepLoai"
                     />
                     <div class="input-group-prepend">
                       <span class="input-group-text" id="btnTimNV"
@@ -213,8 +217,8 @@
 				</div> -->
 
           <!-- Modal body -->
-          <div class="modal-body">
-            <form role="form" id="formQLNV">
+          <form role="form" id="formQLNV">
+            <div class="modal-body">
               <div class="form-group">
                 <div class="input-group">
                   <div class="input-group-prepend">
@@ -224,10 +228,12 @@
                   </div>
                   <input
                     type="text"
-                    name="tk"
+                    name="tknv"
                     id="tknv"
                     class="form-control input-sm"
                     placeholder="Tài khoản"
+                    maxlength="6"
+                    onchange="checkTKNV(this.value,'tbTKNV')"
                   />
                 </div>
 
@@ -247,6 +253,7 @@
                     id="name"
                     class="form-control input-sm"
                     placeholder="Họ và tên"
+                    onchange="checkTenNV(this.value,'tbTen')"
                   />
                 </div>
                 <span class="sp-thongbao" id="tbTen"></span>
@@ -265,6 +272,8 @@
                     id="email"
                     class="form-control input-sm"
                     placeholder="Email"
+                    autocomplete="email"
+                    onchange="checkEmail(this.value,'tbEmail')"
                   />
                 </div>
 
@@ -284,6 +293,8 @@
                     id="password"
                     class="form-control input-sm"
                     placeholder="Mật khẩu"
+                    autocomplete="current-password"
+                    onchange="checkPW(this.value,'tbMatKhau')"
                   />
                 </div>
                 <span class="sp-thongbao" id="tbMatKhau"></span>
@@ -298,10 +309,11 @@
                   </div>
                   <input
                     type="text"
-                    name="ngaylam"
+                    name="datetime"
                     id="datepicker"
                     class="form-control"
                     placeholder="Ngày làm"
+                    onchange="checkDate(this.value,'tbNgay')"
                   />
                 </div>
 
@@ -316,16 +328,16 @@
                     ></span>
                   </div>
                   <input
-                    type="text"
+                    type="number"
                     name="luongCB"
                     id="luongCB"
                     class="form-control input-sm"
                     placeholder="Lương cơ bản"
+                    onchange="checkLuongCB(this.value,'tbLuongCB')"
                   />
                 </div>
                 <span class="sp-thongbao" id="tbLuongCB"></span>
               </div>
-
               <div class="form-group">
                 <div class="input-group">
                   <div class="input-group-prepend">
@@ -333,17 +345,20 @@
                       ><i class="fa fa-briefcase"></i
                     ></span>
                   </div>
-                  <select class="form-control" id="chucvu">
+                  <select
+                    class="form-control"
+                    id="chucvu"
+                    onchange="checkChucVu(this.value,'tbChucVu')"
+                  >
                     <option value="">Chọn chức vụ</option>
-                    <option value="boss">Sếp</option>
-                    <option value="manager">Trưởng phòng</option>
-                    <option value="staff">Nhân viên</option>
+                    <option value="Sếp">Sếp</option>
+                    <option value="Trưởng phòng">Trưởng phòng</option>
+                    <option value="Nhân viên">Nhân viên</option>
                   </select>
                 </div>
 
                 <span class="sp-thongbao" id="tbChucVu"></span>
               </div>
-
               <div class="form-group">
                 <div class="input-group">
                   <div class="input-group-prepend">
@@ -352,35 +367,36 @@
                     ></span>
                   </div>
                   <input
-                    type="text"
+                    type="number"
                     name="gioLam"
                     id="gioLam"
                     class="form-control input-sm"
                     placeholder="Giờ làm"
+                    onchange="checkGioLam(this.value,'tbGiolam')"
                   />
                 </div>
                 <span class="sp-thongbao" id="tbGiolam"></span>
               </div>
-            </form>
-          </div>
+            </div>
 
-          <!-- Modal footer -->
-          <div class="modal-footer" id="modal-footer">
-            <button id="btnThemNV" type="button" class="btn btn-success">
-              Thêm người dùng
-            </button>
-            <button id="btnCapNhat" type="button" class="btn btn-success">
-              Cập nhật
-            </button>
-            <button
-              id="btnDong"
-              type="button"
-              class="btn btn-danger"
-              data-dismiss="modal"
-            >
-              Đóng
-            </button>
-          </div>
+            <!-- Modal footer -->
+            <div class="modal-footer" id="modal-footer">
+              <button id="btnThemNV" type="submit" class="btn btn-success">
+                Thêm người dùng
+              </button>
+              <button id="btnCapNhat" type="button" class="btn btn-success">
+                Cập nhật
+              </button>
+              <button
+                id="btnDong"
+                type="button"
+                class="btn btn-danger"
+                data-dismiss="modal"
+              >
+                Đóng
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
@@ -412,16 +428,10 @@
       });
     </script>
 
-    <!-- Validation JS -->
-    <script src="js/validation.js"></script>
-
-    <!-- Util JS -->
-    <script src="js/util.js"></script>
-
-    <!-- Staff JS -->
-    <script src="js/staff.js"></script>
-
-    <!-- Index JS -->
-    <script src="js/index.js"></script>
+    <!-- my JS -->
+    <script src="./util/util.js"></script>
+    <script src="./validation/validation.js"></script>
+    <script src="./models/classNhanVien.js"></script>
+    <script src="./js/index.js"></script>
   </body>
 </html>

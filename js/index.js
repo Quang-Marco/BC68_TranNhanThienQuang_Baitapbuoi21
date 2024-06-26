@@ -1,70 +1,85 @@
+// Mảng chứa toàn bộ nhân viên
 let arrNhanVien = [];
 
-// Combo 3 trong 1
+// Lấy thông tin NV từ form
+function getValueFormNV(nguonChayHam) {
+  let isValid = true;
+  let nhanVien = new NhanVien();
+  let arrField = document.querySelectorAll("#formQLNV input, #formQLNV select");
+
+  for (let field of arrField) {
+    let { id, value } = field;
+    nhanVien[id] = value;
+    let errorField =
+      field.parentElement.parentElement.querySelector("span.sp-thongbao");
+    let check = checkEmptyValue(value, errorField);
+    isValid &= check;
+
+    // check tknv và email trùng (chỉ chạy cho riêng case thêm mới NV)
+    if (nguonChayHam == "NEW_NV") {
+      for (let oldNhanVien of arrNhanVien) {
+        if (value == oldNhanVien.tknv) {
+          // alert("trùng tknv");
+          errorField.innerHTML = "Tài khoản này đã tồn tại!";
+          errorField.style.display = "block";
+          errorField.parentElement
+            .querySelector("input")
+            .classList.remove("valid");
+          isValid &= false;
+        }
+        if (value == oldNhanVien.email) {
+          // alert("trùng email");
+          errorField.innerHTML = "Email này đã tồn tại!";
+          errorField.style.display = "block";
+          errorField.parentElement
+            .querySelector("input")
+            .classList.remove("valid");
+          isValid &= false;
+        }
+      }
+    }
+
+    if (check) {
+      isValid &= field.classList.contains("valid");
+    }
+
+    // EOF =====[Validate dữ liệu]=====
+  }
+
+  if (isValid) {
+    return nhanVien;
+  } else {
+    return null;
+  }
+}
+
+// Combo 3 trong 1: render, lưu local storage & reset form
 function renderSaveReset() {
   renderArrNhanVien();
   saveLocalStorage();
-  resetForm();
+  resetFormModal();
 }
 
-// Lấy dữ liệu nhân viên từ form
-function getValueForm() {
-  let arrField = document.querySelectorAll(
-    ".input-group input, .input-group select"
-  );
-  let nhanVien = new NhanVien();
-  let isValid = true;
-
-  for (let field of arrField) {
-    let { value, id } = field;
-    nhanVien[id] = value;
-    // Gọi tới thẻ cha đang chứa input
-    let errorField = field.parentElement.querySelector("span");
-    let check = checkEmptyValue(value, errorField);
-    // Toán nhị phân
-    isValid &= check;
-
-    if (check && id == "name") {
-      isValid &= checkMinMaxValue(value, errorField, 4, 30);
-    }
-    if (check && id == "email") {
-      isValid &= checkEmailValue(value, errorField);
-      // checkPhoneNumberValue(value, errorField);
-    }
-    if (check && id == "password") {
-      isValid &= checkPassword(value, errorField);
-    }
-  }
-  if (isValid) {
-    return nhanVien;
-  }
-}
-
-// Reset Form
-function resetForm() {
-  document.getElementById("formQLNV").reset();
-  document.getElementById("tknv").readOnly = false;
-}
-
-// Thêm sịnh viên vào mảng
-document.getElementById("btnThemNV").onclick = function () {
-  let nhanVien = getValueForm();
+// Thêm Nhân viên mới
+document.getElementById("formQLNV").addEventListener("submit", (event) => {
+  event.preventDefault(); //ngăn reload
+  let nhanVien = getValueFormNV("NEW_NV");
   if (!nhanVien) {
     return;
+  } else {
+    arrNhanVien.push(nhanVien);
+    //hiển thị - lưu database - clear form
+    renderSaveReset();
   }
-  // Thêm nhân viên vào mảng
-  arrNhanVien.push(nhanVien);
-  renderSaveReset();
-};
+});
 
-// Hiển thị dữ liệu nhân viên lên giao diện
+// Hiển thị dữ liệu lên table
 function renderArrNhanVien(arr = arrNhanVien) {
   let content = "";
-  for (let nhanVien of arrNhanVien) {
-    let newArrNhanVien = new NhanVien();
+  for (let nhanVien of arr) {
+    let newArrNhanVien = new NhanVien(); // để tránh thay đổi mảng gốc arrNhanVien -> sd được các phương thức trong lớp đối tượng
     Object.assign(newArrNhanVien, nhanVien);
     let { tknv, name, email, datepicker, chucvu } = newArrNhanVien;
-
     content += `
     <tr>
       <td>${tknv}</td>
@@ -72,83 +87,119 @@ function renderArrNhanVien(arr = arrNhanVien) {
       <td>${email}</td>
       <td>${datepicker}</td>
       <td>${chucvu}</td>
-      <td>${newArrNhanVien.tinhTongLuong()}</td>
-      <td>${newArrNhanVien.xepLoaiNhanVien()}</td>
+      <td>${vnd(newArrNhanVien.tongLuongNV())}</td>
+      <td>${newArrNhanVien.xepLoaiNV()}</td>
       <td>
-        <button class="btn btn-danger" onclick="deleteNhanVien('${tknv}')">Xóa</button>
-        <button class="btn btn-warning" onclick="getInfoNhanVien('${tknv}')">Sửa</button>
+        <button onclick="deleteNhanVien('${tknv}')" class="btn btn-danger">Xoá</button>
+        <button onclick="getInfoNhanVien('${tknv}')" class="btn btn-warning">Sửa</button>
       </td>
     </tr>
     `;
   }
-  // DOM tới tbody và hiển thị dữ liệu
   document.getElementById("tableDanhSach").innerHTML = content;
 }
 
-getLocalStorage();
-
-// Lưu trữ dữ liệu xuống local storage
+// Lưu local Storage
 function saveLocalStorage(key = "arrNhanVien", value = arrNhanVien) {
-  let stringJson = JSON.stringify(value);
-  localStorage.setItem(key, stringJson);
+  let stringJSON = JSON.stringify(value);
+  localStorage.setItem(key, stringJSON);
 }
+
+getLocalStorage(); // lấy dữ liệu khi reload trang
 
 // Lấy dữ liệu từ local storage
 function getLocalStorage(key = "arrNhanVien") {
   let arrLocal = localStorage.getItem(key);
-  // arrNhanVien = arrLocal ? JSON.parse(arrLocal) : [];
   if (arrLocal) {
     arrNhanVien = JSON.parse(arrLocal);
     renderArrNhanVien();
   }
 }
 
-// Chức năng xóa một nhân viên khỏi mảng
-function deleteNhanVien(mssv) {
-  let index = arrNhanVien.findIndex((item, index) => item.tknv == mssv);
-  if (index != -1) {
-    arrNhanVien.splice(index, 1);
-    renderArrNhanVien();
-    saveLocalStorage();
+// Xóa nhân viên
+function deleteNhanVien(maNhanVien) {
+  let text = `Bạn có chắc muốn xóa nhân viên [${maNhanVien}] khỏi danh sách?`;
+  if (confirm(text) == true) {
+    let index = arrNhanVien.findIndex((item) => {
+      return item.tknv == maNhanVien;
+    });
+    arrNhanVien.splice(index, 1); // xóa nhanVien ở vị trí index
+    renderSaveReset();
+  } else {
+    return false;
   }
 }
 
-// Chức năng lấy thông tin nhân viên
-function getInfoNhanVien(mssv) {
-  // Đưa dữ liệu SV lên giao diện
-  let nhanVien = arrNhanVien.find((item, index) => item.tknv == mssv);
-  if (nhanVien) {
-    let arrField = document.querySelectorAll(
-      "#formQLNV input, #formQLNV select"
-    );
-    for (let field of arrField) {
-      field.value = nhanVien[field.id];
-    }
-    // Chặn người dùng chỉnh sửa input mã SV
-    document.getElementById("tknv").readOnly = true;
+// =========[Chỉnh sửa thông tin NV]=========
+// Lấy thông tin nhân viên cần sửa
+function getInfoNhanVien(maNhanVien) {
+  // tìm đối tượng nhanVien cần sửa
+  let nhanVienSua = arrNhanVien.find((item) => {
+    return item.tknv == maNhanVien;
+  });
+  let arrField = document.querySelectorAll("#formQLNV input, #formQLNV select");
+  for (let field of arrField) {
+    let { id, value } = field; // = nhanVienSua{itemName : value}
+    field.value = nhanVienSua[id];
+
+    //set các field về trạng thái dữ liệu hợp lệ
+    field.classList.add("valid");
   }
+  // show modal
+  $("#myModal").modal("show");
+
+  // chặn người dùng chỉnh sửa input tknv
+  document.getElementById("tknv").readOnly = true;
+  // chặn người dùng click nút thêm nhân viên
+  document.getElementById("btnThemNV").disabled = true;
+  // Bỏ chặn click nút cập nhật
+  document.getElementById("btnCapNhat").disabled = false;
 }
 
-// Chức năng cập nhật thông tin Nhan viên
+// Cập nhật thông tin nhân viên
 function updateNhanVien() {
-  let nhanVien = getValueForm();
-  let index = arrNhanVien.findIndex((item) => item.tknv == nhanVien.tknv);
+  // lấy dữ liệu từ form
+  let nhanVien = getValueFormNV("UPDATE_NV");
+  // Kiểm tra xem nhanVien có hợp lệ không
+  if (!nhanVien) {
+    return;
+  }
+
+  let index = arrNhanVien.findIndex((item) => {
+    return item.tknv == nhanVien.tknv;
+  });
   if (index != -1) {
     arrNhanVien[index] = nhanVien;
     renderSaveReset();
+    // hide modal
+    $("#myModal").modal("hide");
   }
 }
-
 document.getElementById("btnCapNhat").onclick = updateNhanVien;
+// EOF =====[Chỉnh sửa thông tin NV]=====
 
-// Chức năng tìm kiếm
-function searchNhanVien(e) {
-  let newKeyWord = removeVietnameseTones(e.target.value.toLowerCase().trim());
-  let arrNhanVienFilter = arrNhanVien.filter((item) => {
-    let newTenNhanVien = removeVietnameseTones(item.name.toLowerCase().trim());
-    return newTenNhanVien.includes(newKeyWord);
+document.getElementById("btnDong").onclick = resetFormModal;
+document.getElementById("btnThem").onclick = () => {
+  resetFormModal();
+  // chặn click nút cập nhật
+  document.getElementById("btnCapNhat").disabled = true;
+};
+
+// Search nhân viên
+function searchNhanVien(event) {
+  let newArrNhanVien = [];
+  for (let nhanVien of arrNhanVien) {
+    let newNhanVien = new NhanVien();
+    Object.assign(newNhanVien, nhanVien);
+    newArrNhanVien.push(newNhanVien);
+  }
+
+  let keyword = removeVietnameseTones(event.target.value.toLowerCase().trim());
+  let arrNhanVienFilter = newArrNhanVien.filter(function (item, index) {
+    let xepLoai = removeVietnameseTones(item.xepLoaiNV().toLowerCase().trim());
+    return xepLoai.includes(keyword);
   });
+  // hiển thị lên giao diện danh sách đã lọc
   renderArrNhanVien(arrNhanVienFilter);
 }
-
-document.getElementById("btnTimNV").oninput = searchNhanVien;
+document.getElementById("searchXepLoai").oninput = searchNhanVien;
